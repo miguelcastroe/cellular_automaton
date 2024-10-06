@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Ever-Evolving Cellular Automaton</title>
+    <style>
+        canvas { background-color: #eee; display: block; margin: 0 auto; }
+    </style>
+</head>
+<body>
+    <h1 style="text-align:center;">Ever-Evolving Cellular Automaton</h1>
+    <canvas id="gameCanvas" width="500" height="500"></canvas>
+
+    <script>
+        // Parameters for the grid
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const resolution = 10; // Cell size
+        const rows = canvas.height / resolution;
+        const cols = canvas.width / resolution;
+
+        // Create 2D array to hold the grid
+        function buildGrid() {
+            return new Array(cols).fill(null)
+                .map(() => new Array(rows).fill(null)
+                .map(() => Math.floor(Math.random() * 2))); // Fill with random 0 or 1
+        }
+
+        let grid = buildGrid();
+
+        // Draw the grid
+        function render(grid) {
+            for (let col = 0; col < cols; col++) {
+                for (let row = 0; row < rows; row++) {
+                    const cell = grid[col][row];
+                    ctx.beginPath();
+                    ctx.rect(col * resolution, row * resolution, resolution, resolution);
+                    ctx.fillStyle = cell ? 'black' : 'white';
+                    ctx.fill();
+                    ctx.stroke();
+                }
+            }
+        }
+
+        // Get the number of live neighbors for each cell
+        function countNeighbors(grid, col, row) {
+            let count = 0;
+            for (let i = -1; i < 2; i++) {
+                for (let j = -1; j < 2; j++) {
+                    if (i === 0 && j === 0) {
+                        continue;
+                    }
+                    const x = (col + i + cols) % cols;
+                    const y = (row + j + rows) % rows;
+                    count += grid[x][y];
+                }
+            }
+            return count;
+        }
+
+        // Update the grid based on Conway's Game of Life rules
+        function updateGrid(grid) {
+            const nextGen = grid.map(arr => [...arr]);
+            for (let col = 0; col < cols; col++) {
+                for (let row = 0; row < rows; row++) {
+                    const cell = grid[col][row];
+                    const neighbors = countNeighbors(grid, col, row);
+
+                    if (cell === 0 && neighbors === 3) {
+                        nextGen[col][row] = 1;
+                    } else if (cell === 1 && (neighbors < 2 || neighbors > 3)) {
+                        nextGen[col][row] = 0;
+                    }
+                }
+            }
+            return nextGen;
+        }
+
+        // Main loop to render and update the grid
+        function gameLoop() {
+            grid = updateGrid(grid);
+            render(grid);
+            requestAnimationFrame(gameLoop); // Loop forever
+        }
+
+        // Start the game
+        requestAnimationFrame(gameLoop);
+    </script>
+</body>
+</html>
